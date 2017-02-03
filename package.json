@@ -1,0 +1,26 @@
+{
+    "dependencies": {
+        "body-parser": "*",
+        "bootstrap-imageupload": "*",
+        "consolidate": "*",
+        "express": "*",
+        "express-handlebars": "*",
+        "http-request-builder": "*",
+        "multer": "*",
+        "node-uuid": "*",
+        "node-yaml-config": "*",
+        "pm2": "*",
+        "redis": "*",
+        "serve-favicon": "*",
+        "sharp": "*",
+        "sqlite3": "*",
+        "tinify": "*"
+    },
+    "name": "Tarea_Jueves_2_Febrero_2017",
+    "version": "1.0.0",
+    "description": "wa_ass4",
+    "main": "app.js",
+    "author": "Marcos De Moya",
+    "license": "MIT",
+    "repository": "https://github.com/marcosdemoyalpz/Tarea_Jueves_2_Febrero_2017.git"
+}

@@ -1,0 +1,24 @@
+<div class="col-md-12">
+    <div style="margin-bottom: 15px" class="row">
+        <div class="col-lg-12 centered">
+          <div class="img-responsive">
+          {{#if movie_thumbnail_large}}
+            <img src="{{movie_thumbnail_large}}" class="img-responsive" width="300">
+          {{else}}
+            <img src="{{movie_poster}}" class="img-responsive" width="300">
+          {{/if}}
+          </div>
+          <div class="caption">
+            <div class="row">
+              <h3>{{name}}</h3>
+            </div>
+            <div class="row">
+              {{> keywords}}
+            </div>
+          </div>     
+        </div>
+    </div>
+    <div class="row">
+        <span class="white-space">{{description}}</span>
+    </div>
+</div>
