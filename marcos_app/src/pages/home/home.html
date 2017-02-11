@@ -1,0 +1,16 @@
+<ion-header>
+    <ion-navbar>
+        <ion-title>Home</ion-title>
+    </ion-navbar>
+</ion-header>
+
+<ion-content class="home">
+    <ion-list>
+        <ion-item *ngFor="let person of movies">
+            <ion-avatar item-left>
+                <img src="{{person.movie_poster}}">
+            </ion-avatar>
+            <h2>{{person.name}}</h2>
+        </ion-item>
+    </ion-list>
+</ion-content>
