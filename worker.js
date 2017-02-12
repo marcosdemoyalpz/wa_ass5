@@ -91,7 +91,7 @@ redisSubsClient.on('message', function(channel, key) {
                         console.error('Error creating compressed image: ' + err);
                     } else {
                         db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set compressed_image = (?) where movie_poster = (?)");
+                            var statement = db.prepare("UPDATE movies set compressed_image = (?) where image = (?)");
                             statement.run("/compressed/" + fileName, fullPath);
                             statement.finalize();
                         });
@@ -105,7 +105,7 @@ redisSubsClient.on('message', function(channel, key) {
                         console.error('Error creating small thumbnail: ' + err);
                     } else {
                         db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set movie_thumbnail_small = (?) where movie_poster = (?)");
+                            var statement = db.prepare("UPDATE movies set movie_thumbnail_small = (?) where image = (?)");
                             statement.run("/small/" + fileName, fullPath);
                             statement.finalize();
                         });
@@ -119,7 +119,7 @@ redisSubsClient.on('message', function(channel, key) {
                         console.error('Error creating medium thumbnail: ' + err);
                     } else {
                         db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set movie_thumbnail_medium = (?) where movie_poster = (?)");
+                            var statement = db.prepare("UPDATE movies set movie_thumbnail_medium = (?) where image = (?)");
                             statement.run("/medium/" + fileName, fullPath);
                             statement.finalize();
                         });
@@ -133,7 +133,7 @@ redisSubsClient.on('message', function(channel, key) {
                         console.error('Error creating large thumbnail: ' + err);
                     } else {
                         db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set movie_thumbnail_large = (?) where movie_poster = (?)");
+                            var statement = db.prepare("UPDATE movies set movie_thumbnail_large = (?) where image = (?)");
                             statement.run("/large/" + fileName, fullPath);
                             statement.finalize();
                         });

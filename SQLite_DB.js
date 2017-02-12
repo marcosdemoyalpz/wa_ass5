@@ -14,13 +14,13 @@ db.serialize(function() {
         "name TEXT NOT NULL," +
         "description TEXT NULL," +
         "keywords TEXT NULL," +
-        "movie_poster TEXT NOT NULL," +
+        "image TEXT NOT NULL," +
         "compressed_image TEXT NULL," +
         "movie_thumbnail_small TEXT NULL," +
         "movie_thumbnail_medium TEXT NULL," +
         "movie_thumbnail_large TEXT NULL" +
         ")");
-    db.run('INSERT into movies(id,name,description, keywords, movie_poster) VALUES' +
+    db.run('INSERT into movies(id,name,description, keywords, image) VALUES' +
         '("' + uniqueID + '"' +
         ',"Inglorious Basterds"' +
         ',"In Nazi-occupied France during World War II, a plan to assassinate Nazi leaders by a group of Jewish U.S. soldiers coincides with a theatre owner´s vengeful plans for the same."' +
@@ -28,7 +28,7 @@ db.serialize(function() {
         ',"' + '/originals/' + '3b2d46cd-8856-47a9-8421-c5c6488fc27f' + '.jpg"' +
         ')');
     uniqueID = uuid.v4();
-    db.run('INSERT into movies(id,name,description, keywords, movie_poster) VALUES' +
+    db.run('INSERT into movies(id,name,description, keywords, image) VALUES' +
         '("' + uniqueID + '"' +
         ',"Gran Torino"' +
         ',"Disgruntled Korean War veteran Walt Kowalski sets out to reform his neighbor, a Hmong teenager who tried to steal Kowalski´s prized possession: a 1972 Gran Torino."' +
@@ -36,7 +36,7 @@ db.serialize(function() {
         ',"' + '/originals/' + '795b2fae-0843-44be-8b33-465ea1ca66e7' + '.jpg"' +
         ')');
     uniqueID = uuid.v4();
-    db.run('INSERT into movies(id,name,description, keywords, movie_poster) VALUES' +
+    db.run('INSERT into movies(id,name,description, keywords, image) VALUES' +
         '("' + uniqueID + '"' +
         ',"Pulp Fiction"' +
         ',"The lives of two mob hit men, a boxer, a gangster´s wife, and a pair of diner bandits intertwine in four tales of violence and redemption."' +

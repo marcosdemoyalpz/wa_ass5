@@ -36,6 +36,12 @@ app.set('view engine', 'handlebars');
 app.use(express.static('public'));
 app.use(express.static('generated'));
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 var storageImage = multer.diskStorage({
     destination: function(req, file, cb) {
         var newDestination = '/generated/originals/';
@@ -84,12 +90,14 @@ app.get("/movies", function(req, res) {
 });
 
 app.get('/movies/json', function(req, res) {
+    res.status(200);
+    res.set('Content-Type', 'application/json');
     db.serialize(function() {
         db.all("SELECT * FROM movies", function(err, rows) {
             rows.forEach(function(element) {
                 element.keywords = element.keywords.split(',');
             }, this);
-            res.send(rows);
+            res.send(JSON.parse(JSON.stringify(rows)));
         });
     })
 });
@@ -113,22 +121,30 @@ app.get('/movies/list/json', function(req, res) {
             rows.forEach(function(element) {
                 element.keywords = element.keywords.split(',');
             }, this);
-            res.send(rows);
+            res.send(JSON.parse(JSON.stringify(rows)));
         });
     })
 });
 
 app.get('/movies/details/:id', function(req, res) {
-    db.serialize(function() {
-        db.get("SELECT * FROM movies where id = (?)", req.params.id, function(err, row) {
-            if (row) {
-                row.keywords = row.keywords.split(',');
-                row.title = 'Movies App';
-                row.layoutTitle = 'My Movies';
-            }
-            res.render('details', row);
+    if (req.params.id) {
+        db.serialize(function() {
+            db.get("SELECT * FROM movies where id = (?)", req.params.id, function(err, row) {
+                if (err) {                
+                    return console.error(err);
+                }
+                if (row) {
+                    row.keywords = row.keywords.split(',');
+                    row.title = 'Movies App';
+                    row.layoutTitle = 'My Movies';
+                    res.render('details', row);
+                }
+            });
         });
-    });
+    }
+    else{
+        res.sendStatus(404);
+    }
 });
 
 app.get("/movies/create", function(req, res) {
@@ -210,21 +226,21 @@ app.post('/movies/create', upload.single('image'), function(req, res, next) {
         invalidJsonResponse.invalidDescription ||
         invalidJsonResponse.invalidKeywords ||
         invalidJsonResponse.invalidImage
-    ) {
+        ) {
         res.render('create', invalidJsonResponse);
-        return;
-    }
-    db.serialize(function() {
-        var statement = db.prepare("INSERT INTO movies (id, name, description, keywords, movie_poster) values (?,?,?,?,?)");
-        statement.run(uniqueID, req.body.name, req.body.description, req.body.keywords, newFilePath);
-        console.log(newFilePath);
-        statement.finalize();
-        redisClient.set("marcos:FileUploaded", newFilePath);
-        console.log("Current UUID = " + uniqueID);
-        uniqueID = uuid.v4();
-        console.log("New UUID = " + uniqueID);
-    });
-    res.redirect('/movies');
+    return;
+}
+db.serialize(function() {
+    var statement = db.prepare("INSERT INTO movies (id, name, description, keywords, image) values (?,?,?,?,?)");
+    statement.run(uniqueID, req.body.name, req.body.description, req.body.keywords, newFilePath);
+    console.log(newFilePath);
+    statement.finalize();
+    redisClient.set("marcos:FileUploaded", newFilePath);
+    console.log("Current UUID = " + uniqueID);
+    uniqueID = uuid.v4();
+    console.log("New UUID = " + uniqueID);
+});
+res.redirect('/movies');
 });
 
 app.post('/login', function(req, res) {
