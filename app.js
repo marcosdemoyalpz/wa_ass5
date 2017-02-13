@@ -220,7 +220,7 @@ app.get("/movies/details", function(req, res) {
     res.sendStatus(404);
 });
 
-app.get('/movies/details/:id', function(req, res) {
+app.get('/movies/details/*', function(req, res) {
     // if (req.params.id) {
     //     db.serialize(function() {
     //         db.get("SELECT * FROM movies where id = (?)", req.params.id, function(err, row) {
@@ -238,18 +238,23 @@ app.get('/movies/details/:id', function(req, res) {
     // } else {
     //     res.sendStatus(404);
     // }
-    if (req.params.id === '') {
-        res.sendStatus(404);
-    } else {
-        var ObjectID = new mongo.ObjectID(req.params.id);
-        // db.test.find(ObjectId("4ecc05e55dd98a436ddcc47c"))
+    var id = req.params[0];
+    if (typeof(id) != undefined) {
+        var ObjectID = new mongo.ObjectID(id);
         db.collection('movies').findOne({ _id: ObjectID }, function(err, result) {
-            // result.movie_thumbnail_large = result.movie_thumbnail_large;
-            result.keywords = result.keywords.split(',');
-            result.title = 'Movie App';
-            result.layoutTitle = 'My Movies';
-            res.render('details', result);
+            // console.log(JSON.stringify(result));
+            if (result) {
+                // result.movie_thumbnail_large = result.movie_thumbnail_large;
+                result.keywords = result.keywords.split(',');
+                result.title = 'Movie App';
+                result.layoutTitle = 'My Movies';
+                res.render('details', result);
+            } else {
+                res.sendStatus(404);
+            }
         });
+    } else {
+        res.sendStatus(404);
     }
 });
 
