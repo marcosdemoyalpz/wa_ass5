@@ -216,6 +216,10 @@ app.get('/movies/list/json', function(req, res) {
     })
 });
 
+app.get("/movies/details", function(req, res) {
+    res.sendStatus(404);
+});
+
 app.get('/movies/details/:id', function(req, res) {
     // if (req.params.id) {
     //     db.serialize(function() {
