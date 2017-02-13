@@ -89,7 +89,7 @@ var upload = multer({
 
 var PostUpload = multer({
     dest: '/uploads/',
-    storage: simpleStorageImage,
+    storage: storagePostImage,
 });
 
 app.set('json spaces', 2);
@@ -234,16 +234,19 @@ app.get('/movies/details/:id', function(req, res) {
     // } else {
     //     res.sendStatus(404);
     // }
-    var ObjectID = new mongo.ObjectID(req.params.id);
-    // db.test.find(ObjectId("4ecc05e55dd98a436ddcc47c"))
-    db.collection('movies').findOne({ _id: ObjectID }, function(err, result) {
-        // result.movie_thumbnail_large = result.movie_thumbnail_large;
-        result.keywords = result.keywords.split(',');
-        result.title = 'Movie App';
-        result.layoutTitle = 'My Movies';
-        res.render('details', result);
-        db.close();
-    });
+    if (req.params.id === '') {
+        res.sendStatus(404);
+    } else {
+        var ObjectID = new mongo.ObjectID(req.params.id);
+        // db.test.find(ObjectId("4ecc05e55dd98a436ddcc47c"))
+        db.collection('movies').findOne({ _id: ObjectID }, function(err, result) {
+            // result.movie_thumbnail_large = result.movie_thumbnail_large;
+            result.keywords = result.keywords.split(',');
+            result.title = 'Movie App';
+            result.layoutTitle = 'My Movies';
+            res.render('details', result);
+        });
+    }
 });
 
 app.get("/movies/create", function(req, res) {
