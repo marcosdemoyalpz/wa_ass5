@@ -220,6 +220,10 @@ app.get("/movies/details", function(req, res) {
     res.sendStatus(404);
 });
 
+app.get("/movies/id", function(req, res) {
+    res.sendStatus(404);
+});
+
 app.get('/movies/details/*', function(req, res) {
     // if (req.params.id) {
     //     db.serialize(function() {
@@ -239,7 +243,7 @@ app.get('/movies/details/*', function(req, res) {
     //     res.sendStatus(404);
     // }
     var id = req.params[0];
-    if (typeof(id) != undefined) {
+    if (id != undefined) {
         var ObjectID = new mongo.ObjectID(id);
         db.collection('movies').findOne({ _id: ObjectID }, function(err, result) {
             // console.log(JSON.stringify(result));
@@ -385,11 +389,15 @@ app.post('/login', function(req, res) {
 });
 
 app.post('/image', PostUpload.single('image'), function(req, res, next) {
-    res.set('Content-Type', 'application/json');
+    res.set('Content-Type', 'multipart/form-data');
     if (!req.file) {
         res.sendStatus(404);
     }
-    res.sendStatus(200);
+    if (req.headers.includes('multipart/form-data')) {
+        res.sendStatus(404);
+    } else {
+        res.sendStatus(200);
+    }
 });
 
 app.post('*', function(req, res) {
