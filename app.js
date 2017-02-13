@@ -69,9 +69,27 @@ var storageImage = multer.diskStorage({
     }
 });
 
+var storagePostImage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        var imgDestination = '/public/img/';
+        mkdirp(__dirname + imgDestination, function(err) {
+            cb(null, __dirname + imgDestination);
+        });
+    },
+    filename: function(req, file, cb) {
+        newFilePath = "/img/" + file.originalname;
+        cb(null, file.originalname);
+    }
+});
+
 var upload = multer({
     dest: '/uploads/',
     storage: storageImage,
+});
+
+var PostUpload = multer({
+    dest: '/uploads/',
+    storage: simpleStorageImage,
 });
 
 app.set('json spaces', 2);
@@ -235,6 +253,10 @@ app.get("/movies/create", function(req, res) {
     });
 });
 
+app.get("/image", function(req, res) {
+    res.sendStatus(404);
+});
+
 app.get('*', function(req, res) {
 
     var home = true;
@@ -326,7 +348,11 @@ app.post('/movies/create', upload.single('image'), function(req, res, next) {
         name: req.body.name,
         description: req.body.description,
         keywords: req.body.keywords,
-        image: newFilePath
+        image: newFilePath,
+        compressed_image: "",
+        movie_thumbnail_small: "",
+        movie_thumbnail_medium: "",
+        movie_thumbnail_large: ""
     };
     db.collection('movies').insert(movie, (err, result) => {
         if (err) {
@@ -344,6 +370,14 @@ app.post('/login', function(req, res) {
         'Content-Type': 'application/json'
     })
     res.send(req.body);
+});
+
+app.post('/image', PostUpload.single('image'), function(req, res, next) {
+    res.set('Content-Type', 'application/json');
+    if (!req.file) {
+        res.sendStatus(404);
+    }
+    res.sendStatus(200);
 });
 
 app.post('*', function(req, res) {
