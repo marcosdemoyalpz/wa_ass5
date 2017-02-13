@@ -1,0 +1,4 @@
+default:
+  url: mongodb://45.55.77.201:27017/movies_db_marcos
+  username: admin
+  password: P@$$w0rd

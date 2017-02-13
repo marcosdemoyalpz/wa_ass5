@@ -5,7 +5,8 @@ var redis = require('redis');
 var yaml = require('node-yaml-config');
 var redisYaml = yaml.load('./redis.yml');
 var tinifyYaml = yaml.load('./tinify.yml');
-var sqlite3Yaml = yaml.load('./SQLite3.yml');
+// var sqlite3Yaml = yaml.load('./SQLite3.yml');
+var mongodbYaml = yaml.load('./mongodb.yml');
 var tinify = require('tinify');
 var sharp = require('sharp');
 var redisClient = redis.createClient(redisYaml.port, redisYaml.host);
@@ -14,8 +15,24 @@ redisClient.auth(redisYaml.authKey);
 redisSubsClient.auth(redisYaml.authKey);
 
 //Load Database modules
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(sqlite3Yaml.path);
+// var sqlite3 = require('sqlite3').verbose();
+// var db = new sqlite3.Database(sqlite3Yaml.path);
+var mongo = require('mongodb')
+const MongoClient = mongo.MongoClient;
+var db;
+
+MongoClient.connect(mongodbYaml.url, (err, database) => {
+    // ... start the server
+    if (err) return console.log(err);
+    db = database;
+    redisSubsClient.on('connect', function() {
+        console.log('Redis Subscriber connected');
+    });
+
+    redisClient.on('connect', function() {
+        console.log('Redis Publisher connected');
+    });
+})
 
 // Universally unique identifier modules
 var uuid = require('node-uuid');
@@ -26,14 +43,6 @@ tinify.key = tinifyYaml.key;
 //Defining middleware to serve static files
 app.use('/public', express.static(__dirname + "/public"));
 app.use('/generated', express.static(__dirname + "/generated"));
-
-redisSubsClient.on('connect', function() {
-    console.log('Redis Subscriber connected');
-});
-
-redisClient.on('connect', function() {
-    console.log('Redis Publisher connected');
-});
 
 redisSubsClient.config('set', 'notify-keyspace-events', 'KEA');
 redisSubsClient.subscribe('__keyevent@0__:set', 'marcos:FileUploaded');
@@ -53,50 +62,29 @@ redisSubsClient.on('message', function(channel, key) {
                 var medium_thumbnail_path = __dirname + "/generated/medium/" + fileName;
                 var large_thumbnail_path = __dirname + "/generated/large/" + fileName;
 
-                // mkdirp(__dirname + "/generated/compressed/", function(err) {
-                //     if (err) {
-                //         console.error(err);
-                //     }
-                //     // else {
-                //     //     console.log(compressed_image_path);
-                //     // }
-                // });
-                // mkdirp(__dirname + "/generated/small/", function(err) {
-                //     if (err) {
-                //         console.error(err);
-                //     } 
-                //     // else {
-                //     //     console.log(small_thumbnail_path);
-                //     // }
-                // });
-                // mkdirp(__dirname + "/generated/medium/", function(err) {
-                //     if (err) {
-                //         console.error(err);
-                //     }
-                //     // else {
-                //     //     console.log(medium_thumbnail_path);
-                //     // }
-                // });
-                // mkdirp(__dirname + "/generated/large/", function(err) {
-                //     if (err) {
-                //         console.error(err);
-                //     }
-                //     // else {
-                //     //     console.log(large_thumbnail_path);
-                //     // }
-                // });
-
                 tinify.fromFile(__dirname + '/generated/' + fullPath).toFile(compressed_image_path, function(err) {
-                    if (err) {
-                        console.error('Error creating compressed image: ' + err);
-                    } else {
-                        db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set compressed_image = (?) where image = (?)");
-                            statement.run("/compressed/" + fileName, fullPath);
-                            statement.finalize();
-                        });
-                        console.log('Compressed Image Created!');
-                    }
+                    // if (err) {
+                    //     console.error('Error creating compressed image: ' + err);
+                    // } else {
+                    //     db.serialize(function() {
+                    //         var statement = db.prepare("UPDATE movies set compressed_image = (?) where image = (?)");
+                    //         statement.run("/compressed/" + fileName, fullPath);
+                    //         statement.finalize();
+                    //     });
+                    //     console.log('Compressed Image Created!');
+                    mongoClient.connect(mongoConfig.conectionString, function(err, db) {
+                        if (err) {
+                            return console.error(err);
+                        }
+                        db.collection('movies').update({ image: fullPath }, { $set: { compressed_image: "/compressed/" + fileName } },
+                            function(err, result) {
+                                if (err) {
+                                    console.error(err);
+                                } else {
+                                    console.log('Compressed Image Created!');
+                                }
+                            });
+                    });
                 });
                 sharp(__dirname + '/generated/' + fullPath).resize(78, 120, {
                     centerSampling: true
@@ -104,12 +92,26 @@ redisSubsClient.on('message', function(channel, key) {
                     if (err) {
                         console.error('Error creating small thumbnail: ' + err);
                     } else {
-                        db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set movie_thumbnail_small = (?) where image = (?)");
-                            statement.run("/small/" + fileName, fullPath);
-                            statement.finalize();
+                        //     db.serialize(function() {
+                        //         var statement = db.prepare("UPDATE movies set movie_thumbnail_small = (?) where image = (?)");
+                        //         statement.run("/small/" + fileName, fullPath);
+                        //         statement.finalize();
+                        //     });
+                        //     console.log('Small Thumbnail Created!');
+                        // }
+                        mongoClient.connect(mongoConfig.conectionString, function(err, db) {
+                            if (err) {
+                                return console.error(err);
+                            }
+                            db.collection('movies').update({ image: fullPath }, { $set: { smallThumbnail: "/small/" + fileName } },
+                                function(err, result) {
+                                    if (err) {
+                                        console.error(err);
+                                    } else {
+                                        console.log('Small Thumbnail Created!');
+                                    }
+                                });
                         });
-                        console.log('Small Thumbnail Created!');
                     }
                 });
                 sharp(__dirname + '/generated/' + fullPath).resize(196, 300, {
@@ -118,12 +120,26 @@ redisSubsClient.on('message', function(channel, key) {
                     if (err) {
                         console.error('Error creating medium thumbnail: ' + err);
                     } else {
-                        db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set movie_thumbnail_medium = (?) where image = (?)");
-                            statement.run("/medium/" + fileName, fullPath);
-                            statement.finalize();
+                        //     db.serialize(function() {
+                        //         var statement = db.prepare("UPDATE movies set movie_thumbnail_medium = (?) where image = (?)");
+                        //         statement.run("/medium/" + fileName, fullPath);
+                        //         statement.finalize();
+                        //     });
+                        //     console.log('Medium Thumbnail Created!');
+                        // }
+                        mongoClient.connect(mongoConfig.conectionString, function(err, db) {
+                            if (err) {
+                                return console.error(err);
+                            }
+                            db.collection('movies').update({ image: fullPath }, { $set: { movie_thumbnail_medium: "/medium/" + fileName } },
+                                function(err, result) {
+                                    if (err) {
+                                        console.error(err);
+                                    } else {
+                                        console.log('Medium Thumbnail Created!');
+                                    }
+                                });
                         });
-                        console.log('Medium Thumbnail Created!');
                     }
                 });
                 sharp(__dirname + '/generated/' + fullPath).resize(300, 460, {
@@ -132,12 +148,26 @@ redisSubsClient.on('message', function(channel, key) {
                     if (err) {
                         console.error('Error creating large thumbnail: ' + err);
                     } else {
-                        db.serialize(function() {
-                            var statement = db.prepare("UPDATE movies set movie_thumbnail_large = (?) where image = (?)");
-                            statement.run("/large/" + fileName, fullPath);
-                            statement.finalize();
+                        //     db.serialize(function() {
+                        //         var statement = db.prepare("UPDATE movies set movie_thumbnail_large = (?) where image = (?)");
+                        //         statement.run("/large/" + fileName, fullPath);
+                        //         statement.finalize();
+                        //     });
+                        //     console.log('Large Thumbnail Created!');
+                        // }
+                        mongoClient.connect(mongoConfig.conectionString, function(err, db) {
+                            if (err) {
+                                return console.error(err);
+                            }
+                            db.collection('movies').update({ image: fullPath }, { $set: { movie_thumbnail_large: "/large/" + fileName } },
+                                function(err, result) {
+                                    if (err) {
+                                        console.error(err);
+                                    } else {
+                                        console.log('Large Thumbnail Created!');
+                                    }
+                                });
                         });
-                        console.log('Large Thumbnail Created!');
                     }
                 });
             } catch (err) {

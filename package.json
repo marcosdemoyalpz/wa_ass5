@@ -6,6 +6,7 @@
     "express": "*",
     "express-handlebars": "*",
     "http-request-builder": "*",
+    "mongodb": "^2.2.22",
     "multer": "*",
     "node-uuid": "*",
     "node-yaml-config": "*",
