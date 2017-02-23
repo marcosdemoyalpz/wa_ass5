@@ -216,15 +216,7 @@ app.get('/movies/list/json', function(req, res) {
     })
 });
 
-app.get("/movies/details", function(req, res) {
-    res.sendStatus(404);
-});
-
-app.get("/movies/id", function(req, res) {
-    res.sendStatus(404);
-});
-
-app.get('/movies/details/*', function(req, res) {
+app.get('/movies/details/:id', function(req, res) {
     // if (req.params.id) {
     //     db.serialize(function() {
     //         db.get("SELECT * FROM movies where id = (?)", req.params.id, function(err, row) {
@@ -242,24 +234,16 @@ app.get('/movies/details/*', function(req, res) {
     // } else {
     //     res.sendStatus(404);
     // }
-    var id = req.params[0];
-    if (id != undefined) {
-        var ObjectID = new mongo.ObjectID(id);
-        db.collection('movies').findOne({ _id: ObjectID }, function(err, result) {
-            // console.log(JSON.stringify(result));
-            if (result) {
-                // result.movie_thumbnail_large = result.movie_thumbnail_large;
-                result.keywords = result.keywords.split(',');
-                result.title = 'Movie App';
-                result.layoutTitle = 'My Movies';
-                res.render('details', result);
-            } else {
-                res.sendStatus(404);
-            }
-        });
-    } else {
-        res.sendStatus(404);
-    }
+    var ObjectID = new mongo.ObjectID(req.params.id);
+    // db.test.find(ObjectId("4ecc05e55dd98a436ddcc47c"))
+    db.collection('movies').findOne({ _id: ObjectID }, function(err, result) {
+        // result.movie_thumbnail_large = result.movie_thumbnail_large;
+        result.keywords = result.keywords.split(',');
+        result.title = 'Movie App';
+        result.layoutTitle = 'My Movies';
+        res.render('details', result);
+        db.close();
+    });
 });
 
 app.get("/movies/create", function(req, res) {
@@ -288,7 +272,6 @@ app.get('*', function(req, res) {
     } else if (req.path.includes('/login')) {
         res.sendFile(__dirname + '/public/login.html');
         home = false;
-    }
 
     if (home) {
         var myHeader, headerArray, key;
@@ -389,14 +372,11 @@ app.post('/login', function(req, res) {
 });
 
 app.post('/image', PostUpload.single('image'), function(req, res, next) {
+    res.set('Content-Type', 'application/json');
     if (!req.file) {
-        res.sendStatus(400);
+        res.sendStatus(404);
     }
-    if (req.headers['content-type'].includes('multipart')) {
-        res.sendStatus(200);
-    } else {
-        res.sendStatus(400);
-    }
+    res.sendStatus(200);
 });
 
 app.post('*', function(req, res) {
@@ -408,5 +388,7 @@ app.post('*', function(req, res) {
         res.sendStatus(500);
     } else if (req.path.includes('/notimplemented')) {
         res.sendStatus(200);
+    } else if (req.path.includes('/image')) {
+        res.sendStatus(404);
     }
 });
